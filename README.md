@@ -34,7 +34,7 @@ A single HTML map file bundled with customizable popular Leaflet plugins, map pr
 * **Autocomplete** <br>OpenStreetMap search engine available into a simple autocompletion list. [Learn more](https://olivier3lanc.github.io/seemap/autocomplete.html)<br><br>
 * **Permalink** <br>Permalink control button allows visitors to always get the direct link to the current view, useful to share the map view [Learn more](https://olivier3lanc.github.io/seemap/permalink.html)<br><br>
 * **Reset view** <br>Reset view control button allows visitors to go back to the very first view of their current session, or to the SEEMAP's default settings [Learn more](https://olivier3lanc.github.io/seemap/reset-view.html)<br><br>
-* **Make a Polygon from markers** <br>Add <pre>draw=true</pre> to make a polygon from markers you specified<br><br>
+* **Make a Polygon from markers** <br>Add <code>draw=true</code> to make a polygon from markers you specified<br><br>
 
 ## Use cases
 
