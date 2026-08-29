@@ -29690,6 +29690,21 @@
                         seemap.instance.setZoom(map_zoom_level);
                     }
 
+                    // Draw polygon over all available markers when ?draw is specified
+                    const draw_polygon = seemap.isGetParameter('draw') !== null;
+                    if (draw_polygon) {
+                        const polygon_coordinates = Object.keys(seemap.markers).map(function(marker_id) {
+                            return seemap.markers[marker_id].getLatLng();
+                        });
+                        if (polygon_coordinates.length >= 3) {
+                            seemap.polygon = L.polygon(polygon_coordinates, {
+                                color: 'red',
+                                weight: 2,
+                                fillOpacity: 0.1
+                            }).addTo(seemap.instance);
+                        }
+                    }
+
                     // Routing
                     if (waypoints.length > 1 && map_routing) {
                         seemap.routeControl = L.Routing.control({
@@ -29960,6 +29975,10 @@
                 permanent_link += '&autocompleteZoom='+current_view_settings.autocompleteZoom;
                 // Language
                 permanent_link += '&language='+current_view_settings.language;
+                // Draw polygon
+                if (this.isGetParameter('draw') !== null) {
+                    permanent_link += '&draw='+encodeURIComponent(this.isGetParameter('draw'));
+                }
                 // Markers
                 current_view_settings.markers.forEach(function(marker_data) {
                     // Add it only if marker is elligible for permalink
