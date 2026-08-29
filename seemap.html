@@ -29690,12 +29690,72 @@
                         seemap.instance.setZoom(map_zoom_level);
                     }
 
-                    // Draw polygon over all available markers when ?draw is specified
+                    // Draw a polygon around the outermost markers when ?draw is specified.
+                    // Markers inside the convex hull are ignored, so e.g. a square with a
+                    // marker in its center produces a square rather than triangles.
                     const draw_polygon = seemap.isGetParameter('draw') !== null;
                     if (draw_polygon) {
-                        const polygon_coordinates = Object.keys(seemap.markers).map(function(marker_id) {
+                        const all_marker_coordinates = Object.keys(seemap.markers).map(function(marker_id) {
                             return seemap.markers[marker_id].getLatLng();
                         });
+
+                        // Monotonic-chain convex hull. Leaflet's LatLng uses latitude as Y
+                        // and longitude as X, so the hull can be calculated directly here.
+                        function convexHull(latlngs) {
+                            const points = latlngs.map(function(latlng, index) {
+                                return { lat: latlng.lat, lng: latlng.lng, index: index };
+                            }).sort(function(a, b) {
+                                return a.lng - b.lng || a.lat - b.lat;
+                            });
+
+                            // Remove duplicate coordinates.
+                            const unique = [];
+                            points.forEach(function(point) {
+                                if (!unique.length ||
+                                    unique[unique.length - 1].lng !== point.lng ||
+                                    unique[unique.length - 1].lat !== point.lat) {
+                                    unique.push(point);
+                                }
+                            });
+
+                            if (unique.length <= 2) {
+                                return unique;
+                            }
+
+                            function cross(o, a, b) {
+                                return (a.lng - o.lng) * (b.lat - o.lat) -
+                                       (a.lat - o.lat) * (b.lng - o.lng);
+                            }
+
+                            const lower = [];
+                            unique.forEach(function(point) {
+                                while (lower.length >= 2 &&
+                                       cross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) {
+                                    lower.pop();
+                                }
+                                lower.push(point);
+                            });
+
+                            const upper = [];
+                            for (let i = unique.length - 1; i >= 0; i--) {
+                                const point = unique[i];
+                                while (upper.length >= 2 &&
+                                       cross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) {
+                                    upper.pop();
+                                }
+                                upper.push(point);
+                            }
+
+                            lower.pop();
+                            upper.pop();
+                            return lower.concat(upper);
+                        }
+
+                        const hull = convexHull(all_marker_coordinates);
+                        const polygon_coordinates = hull.map(function(point) {
+                            return L.latLng(point.lat, point.lng);
+                        });
+
                         if (polygon_coordinates.length >= 3) {
                             seemap.polygon = L.polygon(polygon_coordinates, {
                                 color: 'red',
