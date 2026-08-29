@@ -7,9 +7,9 @@
     // SEEMAP USER SETTINGS
     // Feel free to edit according to your needs
     const userSettings = {
-        lat: 46.3396952, // Float or null - Default latitude
-        lng: 2.6072057, // Float or null - Default longitude
-        zoom: 4, // Integer or null - Default map zoom level
+        lat: 46.63519425101065, // Float or null - Default latitude
+        lng: 32.61567802306433, // Float or null - Default longitude
+        zoom: 15, // Integer or null - Default map zoom level
         zoomControl: true, // Boolean - Enable or disable map zoom control
         viewResetControl: true, // Boolean - Enable or disable map view reset control.
         viewResetGoesToFirstView: true, // Boolean - If true, the destination of view reset is the first view of the visitor. If false, destination is based on SEEMAP user settings (lat, lng, zoom).
@@ -67,7 +67,27 @@
                 zoomIn: 'Zoomer',
                 zoomOut: 'Dézoomer',
                 distance: 'Distance'
-            }
+            },
+            uk_UA: {
+                autocompletePlaceholder: 'Введіть назву міста',
+                autocompleteDirectLinkTooltip: 'Отримайте пряме посилання на цю точку',
+                autocompleteDirectLinkText: 'Пряме посилання',
+                resetView: 'Скинути мапу до першого вигляду',
+                permalink: 'Пряме посилання на поточний вигляд мапи',
+                zoomIn: 'Збільшити масштаб',
+                zoomOut: 'Зменшити масштаб',
+                distance: 'Відстань'
+            },
+            ru_RU: {
+                autocompletePlaceholder: 'Введіть назву міста',
+                autocompleteDirectLinkTooltip: 'Отримайте пряме посилання на цю точку',
+                autocompleteDirectLinkText: 'Пряме посилання',
+                resetView: 'Скинути мапу до першого вигляду',
+                permalink: 'Пряме посилання на поточний вигляд мапи',
+                zoomIn: 'Збільшити масштаб',
+                zoomOut: 'Зменшити масштаб',
+                distance: 'Відстань'
+            },
         }
     }
 </script>
@@ -97,7 +117,7 @@
     <meta property="og:title" content="SEEMAP">
     <meta property="og:description" content="Embed maps easily with a single HTML file">
     <meta property="og:image" content="https://i.imgur.com/V8yndCM.png">
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="SEEMAP">
@@ -9274,10 +9294,10 @@
 
         /*
             * Extends L.Marker to include two extra methods: clusterHide and clusterShow.
-            * 
+            *
             * They work as setOpacity(0) and setOpacity(1) respectively, but
             * they will remember the marker's opacity when hiding and showing it again.
-            * 
+            *
             */
 
 
@@ -29056,20 +29076,20 @@
             routingStyles: [
                 // Back line
                 {
-                    color: userSettings.routingBackLineColor, 
-                    opacity: userSettings.routingBackLineOpacity, 
+                    color: userSettings.routingBackLineColor,
+                    opacity: userSettings.routingBackLineOpacity,
                     weight: userSettings.routingBackLineWeight
-                }, 
+                },
                 // Middle line
                 {
-                    color: userSettings.routingMidLineColor, 
-                    opacity: userSettings.routingMidLineOpacity, 
+                    color: userSettings.routingMidLineColor,
+                    opacity: userSettings.routingMidLineOpacity,
                     weight: userSettings.routingMidLineWeight
-                }, 
+                },
                 // Front line
                 {
-                    color: userSettings.routingFrontLineColor, 
-                    opacity: userSettings.routingFrontLineOpacity, 
+                    color: userSettings.routingFrontLineColor,
+                    opacity: userSettings.routingFrontLineOpacity,
                     weight: userSettings.routingFrontLineWeight
                 }
             ],
@@ -29415,7 +29435,7 @@
         },
         /**
          * @function getParameter
-         * @description Get the specified URL search parameter 
+         * @description Get the specified URL search parameter
          * @param {String} str - The parameter name
          * @return {String}
         */
@@ -29427,7 +29447,7 @@
             }
             return value;
         },
-        
+
         /**
          * @function getCurrentViewSettings
          * @description Returns an object with all parameters applied for the current view
@@ -29460,22 +29480,22 @@
             if (this.getParameter('zoomControl') == 'false') { current_settings.zoomControl = false };
             if (this.getParameter('zoomControl') == 'true') { current_settings.zoomControl = true };
 
-            // View reset control 
+            // View reset control
             current_settings.viewResetControl = this.defaults.viewResetControl;
             if (this.getParameter('viewResetControl') == 'false') { current_settings.viewResetControl = false };
             if (this.getParameter('viewResetControl') == 'true') { current_settings.viewResetControl = true };
 
-            // View reset behavior 
+            // View reset behavior
             current_settings.viewResetGoesToFirstView = this.defaults.viewResetGoesToFirstView;
             if (this.getParameter('viewResetGoesToFirstView') == 'false') { current_settings.viewResetGoesToFirstView = false };
             if (this.getParameter('viewResetGoesToFirstView') == 'true') { current_settings.viewResetGoesToFirstView = true };
 
-            // Marker cluster 
+            // Marker cluster
             current_settings.cluster = this.defaults.cluster;
             if (this.getParameter('cluster') == 'false') { current_settings.cluster = false };
             if (this.getParameter('cluster') == 'true') { current_settings.cluster = true };
 
-            // Layer 
+            // Layer
             current_settings.layer = this.defaults.layer;
             const getp_map_layer = this.getParameter('layer');
             if (getp_map_layer.length > 0) {
@@ -29483,15 +29503,15 @@
                     current_settings.layer = getp_map_layer;
                 }
             };
-            // Gesture handling 
+            // Gesture handling
             current_settings.gesture = this.defaults.gesture;
             if (this.getParameter('gesture') == 'false') { current_settings.gesture = false };
             if (this.getParameter('gesture') == 'true') { current_settings.gesture = true };
-            // Routing 
+            // Routing
             current_settings.routing = this.defaults.routing;
             if (this.getParameter('routing') == 'false') { current_settings.routing = false };
             if (this.getParameter('routing') == 'true') { current_settings.routing = true };
-            // Autocomplete 
+            // Autocomplete
             current_settings.autocomplete = this.defaults.autocomplete;
             if (this.getParameter('autocomplete') == 'false') { current_settings.autocomplete = false };
             if (this.getParameter('autocomplete') == 'true') { current_settings.autocomplete = true };
@@ -29499,7 +29519,7 @@
             current_settings.autocompleteZoom = this.defaults.autocompleteZoom;
             const getp_map_autocomplete_zoom = this.getParameter('autocompleteZoom');
             // If autocomplete zoom GET is a stringified number
-            if (getp_map_autocomplete_zoom.length > 0) { 
+            if (getp_map_autocomplete_zoom.length > 0) {
                 const parsed_int_getp_map_autocomplete_zoom = parseInt(getp_map_autocomplete_zoom);
                 if (!isNaN(parsed_int_getp_map_autocomplete_zoom)) {
                     current_settings.autocompleteZoom = parsed_int_getp_map_autocomplete_zoom;
@@ -29507,7 +29527,7 @@
                     current_settings.autocompleteZoom = null;
                 }
             };
-            // Fit bounds 
+            // Fit bounds
             current_settings.fit = this.defaults.fit;
             if (this.getParameter('fit') == 'false') { current_settings.fit = false };
             if (this.getParameter('fit') == 'true') { current_settings.fit = true };
@@ -29530,12 +29550,12 @@
                     permalinkable: permalinkable
                 })
             });
-            // Language 
+            // Language
             current_settings.language = this.defaults.language;
             // Return settings
             return current_settings;
         },
-        
+
         /**
          * @function update
          * @description Initializes SEEMAP
@@ -29550,7 +29570,7 @@
             let map_view_custom_enabled = false;
             const getp_map_view = this.getParameter('view').split(',');
             // If 2 data
-            if (getp_map_view.length == 2) { 
+            if (getp_map_view.length == 2) {
                 const parsed_int_getp_map_view_lat = parseFloat(getp_map_view[0]);
                 const parsed_int_getp_map_view_lng = parseFloat(getp_map_view[1]);
                 if (!isNaN(parsed_int_getp_map_view_lat) && !isNaN(parsed_int_getp_map_view_lng)) {
@@ -29564,7 +29584,7 @@
             let map_zoom_level_custom_enabled = false;
             const getp_map_zoom_level = this.getParameter('zoom');
             // If zoom GET is a stringified number
-            if (getp_map_zoom_level.length > 0) { 
+            if (getp_map_zoom_level.length > 0) {
                 const parsed_int_getp_map_zoom_level = parseInt(getp_map_zoom_level);
                 if (!isNaN(parsed_int_getp_map_zoom_level)) {
                     map_zoom_level = parsed_int_getp_map_zoom_level;
@@ -29613,7 +29633,7 @@
             let map_autocomplete_zoom = this.defaults.autocompleteZoom;
             const getp_map_autocomplete_zoom = this.getParameter('autocompleteZoom');
             // If autocomplete zoom GET is a stringified number
-            if (getp_map_autocomplete_zoom.length > 0) { 
+            if (getp_map_autocomplete_zoom.length > 0) {
                 const parsed_int_getp_map_autocomplete_zoom = parseInt(getp_map_autocomplete_zoom);
                 if (!isNaN(parsed_int_getp_map_autocomplete_zoom)) {
                     map_autocomplete_zoom = parsed_int_getp_map_autocomplete_zoom;
@@ -29799,8 +29819,8 @@
                             const current_markers_last_key =  current_markers_keys[current_markers_keys.length - 1];
                             const popup_content = `${seemap.text('distance')}:<br><strong>${nf.format(total_distance_in_km)} km<br>${nf.format(total_distance_rounded_in_mi)} mi</strong>`;
                             seemap.instance.openPopup(
-                                popup_content, { 
-                                    lat: route_midpoint.lat, 
+                                popup_content, {
+                                    lat: route_midpoint.lat,
                                     lng: route_midpoint.lng
                                 }, {
                                     autoPan: false,
@@ -29940,8 +29960,8 @@
                                     target="_blank"><img src="${userSettings.markerIconUrl}" alt="Marker" style="height:1em"> ${seemap.text('autocompleteDirectLinkText')}</a>
                             `;
                             seemap.instance.openPopup(
-                                popup_content, { 
-                                    lat: lat, 
+                                popup_content, {
+                                    lat: lat,
                                     lng: lng
                                 }, {
                                     autoPan: true,
@@ -29970,7 +29990,7 @@
                 }
             });
 
-            
+
             // Update permalink on zoomend event
             this.instance.on('zoomend', function() {
                 seemap.updatePermalink();
@@ -29997,7 +30017,7 @@
                 el_zoom_out_btn.style.backgroundImage = 'url('+userSettings.controlZoomOutIconUrl+')';
             }
         },
-        
+
         /**
          * @function updatePermalink
          * @description Create the link to the view currently applied
@@ -30063,7 +30083,7 @@
                                 target="_blank"
                                 style="background-image: url(${userSettings.controlPermalinkIconUrl})">P</a>
                         </div>
-                        
+
                     `);
                 } else {
                     el_seemap_permalink.href = permanent_link;
