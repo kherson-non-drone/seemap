@@ -1,6 +1,6 @@
 # SEEMAP
 
-**Embed maps easily with a single HTML file** 
+**Embed maps easily with a single HTML file**
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/olivier3lanc/seemap)](https://github.com/olivier3lanc/seemap/releases)
 
@@ -34,6 +34,7 @@ A single HTML map file bundled with customizable popular Leaflet plugins, map pr
 * **Autocomplete** <br>OpenStreetMap search engine available into a simple autocompletion list. [Learn more](https://olivier3lanc.github.io/seemap/autocomplete.html)<br><br>
 * **Permalink** <br>Permalink control button allows visitors to always get the direct link to the current view, useful to share the map view [Learn more](https://olivier3lanc.github.io/seemap/permalink.html)<br><br>
 * **Reset view** <br>Reset view control button allows visitors to go back to the very first view of their current session, or to the SEEMAP's default settings [Learn more](https://olivier3lanc.github.io/seemap/reset-view.html)<br><br>
+* **Make a Polygon from markers** <br>Add <pre>draw=true</pre> to make a polygon from markers you specified<br><br>
 
 ## Use cases
 
@@ -58,7 +59,7 @@ List of libraries and resources SEEMAP could not exist without!
 * [Leaflet.js](https://leafletjs.com/) an open-source JavaScript library
 for mobile-friendly interactive maps
 * [OpenStreetMap](https://www.openstreetmap.org) OpenStreetMap is the free wiki world map.
-* [Leaflet Gesture Handling](https://github.com/elmarquis/Leaflet.GestureHandling) Brings the basic functionality of Google Maps Gesture Handling into Leaflet. Prevents users from getting trapped on the map when scrolling a long page. 
+* [Leaflet Gesture Handling](https://github.com/elmarquis/Leaflet.GestureHandling) Brings the basic functionality of Google Maps Gesture Handling into Leaflet. Prevents users from getting trapped on the map when scrolling a long page.
 * [Leaflet Marker Cluster](https://github.com/Leaflet/Leaflet.markercluster) Provides Beautiful Animated Marker Clustering functionality for Leaflet, a JS library for interactive maps.
 * [Leaflet Routing Machine](https://github.com/perliedman/leaflet-routing-machine) or [Official website](https://www.liedman.net/leaflet-routing-machine/) Control for routing in Leaflet based on [OSRM - Open Source Routing Machine](http://map.project-osrm.org)
 * [Leaflet.Autocomplete](https://github.com/tomik23/Leaflet.Autocomplete) OpenStreetMap search engine available into a simple autocompletion list.
