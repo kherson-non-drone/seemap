@@ -29383,8 +29383,8 @@
         },
         markers: {},
         routeControl: {},
-        directionLine: null,
-        directionArrow: null,
+        directionLines: [],
+        directionArrows: [],
         clusterGroup: L.markerClusterGroup(),
         /**
          * @function addMarker
@@ -29801,11 +29801,12 @@
                         }
                     }
 
-                    // Direction arrow
+                    // Direction arrow(s)
                     // ?direction=lat1,lng1,lat2,lng2
                     // or     ?direction=name1,name2
-                    const direction_parameter = seemap.isGetParameter('direction');
-                    if (direction_parameter !== null) {
+                    // Multiple &direction=... parameters may be given to draw several arrows.
+                    const direction_parameters = seemap.getSearchParameters().getAll('direction');
+                    direction_parameters.forEach(function(direction_parameter) {
                         let direction_from = null;
                         let direction_to = null;
                         const direction_parts = direction_parameter.split(',');
@@ -29837,11 +29838,12 @@
 
                         if (direction_from !== null && direction_to !== null) {
                             // Draw the line from A to B.
-                            seemap.directionLine = L.polyline([direction_from, direction_to], {
+                            const direction_line = L.polyline([direction_from, direction_to], {
                                 color: seemap.defaults.directionLineColor,
                                 opacity: seemap.defaults.directionLineOpacity,
                                 weight: seemap.defaults.directionLineWeight
                             }).addTo(seemap.instance);
+                            seemap.directionLines.push(direction_line);
 
                             // Compass bearing (0deg = north, clockwise) from A to B.
                             const bearing_radians = Math.atan2(
@@ -29878,14 +29880,15 @@
                                 iconAnchor: [arrow_tip_x, arrow_tip_y]
                             });
 
-                            seemap.directionArrow = L.marker(direction_to, {
+                            const direction_arrow = L.marker(direction_to, {
                                 icon: arrow_icon,
                                 interactive: false,
                                 keyboard: false,
                                 zIndexOffset: 1000
                             }).addTo(seemap.instance);
+                            seemap.directionArrows.push(direction_arrow);
                         }
-                    }
+                    });
 
                     // Routing
                     if (waypoints.length > 1 && map_routing) {
@@ -30161,13 +30164,17 @@
                 if (this.isGetParameter('draw') !== null) {
                     permanent_link += '&draw='+encodeURIComponent(this.isGetParameter('draw'));
                 }
-                // Direction arrow
-                if (this.directionLine !== null) {
-                    const direction_from = this.directionLine.getLatLngs()[0];
-                    const direction_to = this.directionLine.getLatLngs()[1];
-                    permanent_link += '&direction='+direction_from.lat+','+direction_from.lng+','+direction_to.lat+','+direction_to.lng;
-                } else if (this.isGetParameter('direction') !== null) {
-                    permanent_link += '&direction='+encodeURIComponent(this.isGetParameter('direction'));
+                // Direction arrow(s)
+                if (this.directionLines.length > 0) {
+                    this.directionLines.forEach(function(direction_line) {
+                        const direction_from = direction_line.getLatLngs()[0];
+                        const direction_to = direction_line.getLatLngs()[1];
+                        permanent_link += '&direction='+direction_from.lat+','+direction_from.lng+','+direction_to.lat+','+direction_to.lng;
+                    });
+                } else {
+                    this.getSearchParameters().getAll('direction').forEach(function(direction_parameter) {
+                        permanent_link += '&direction='+encodeURIComponent(direction_parameter);
+                    });
                 }
                 // Markers
                 current_view_settings.markers.forEach(function(marker_data) {
