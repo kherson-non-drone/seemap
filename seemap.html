@@ -1380,6 +1380,36 @@
         filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
         pointer-events: none;
     }
+    .seemap-direction-order {
+        background: transparent;
+        border: none;
+        pointer-events: none;
+    }
+    .seemap-direction-order-circle {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 1.5px solid #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        color: #ffffff;
+        font-family: inherit;
+        font-weight: 700;
+        line-height: 1;
+        box-sizing: border-box;
+    }
+    .seemap-direction-order-circle::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--order-color, #000000);
+        opacity: var(--order-opacity, 1);
+        z-index: -1;
+    }
 </style>
     <!-- Leaflet Routing Machine -->
 <style>
@@ -29385,6 +29415,7 @@
         routeControl: {},
         directionLines: [],
         directionArrows: [],
+        directionOrderLabels: [],
         clusterGroup: L.markerClusterGroup(),
         /**
          * @function addMarker
@@ -29806,7 +29837,7 @@
                     // or     ?direction=name1,name2
                     // Multiple &direction=... parameters may be given to draw several arrows.
                     const direction_parameters = seemap.getSearchParameters().getAll('direction');
-                    direction_parameters.forEach(function(direction_parameter) {
+                    direction_parameters.forEach(function(direction_parameter, direction_index) {
                         let direction_from = null;
                         let direction_to = null;
                         const direction_parts = direction_parameter.split(',');
@@ -29887,6 +29918,37 @@
                                 zIndexOffset: 1000
                             }).addTo(seemap.instance);
                             seemap.directionArrows.push(direction_arrow);
+
+                            // Order badge: a small numbered circle at the midpoint of the
+                            // arrow, showing the order in which this direction appears
+                            // among the &direction=... URL parameters (1-based).
+                            const order_number = direction_index + 1;
+                            const order_midpoint = L.latLng(
+                                (direction_from.lat + direction_to.lat) / 2,
+                                (direction_from.lng + direction_to.lng) / 2
+                            );
+                            const order_size = Math.max(18, Math.round(arrow_size * 0.75));
+                            const order_font_size = Math.max(10, Math.round(order_size * 0.55));
+
+                            const order_icon = L.divIcon({
+                                className: 'seemap-direction-order',
+                                html: '<div class="seemap-direction-order-circle" style="' +
+                                    '--order-color:' + seemap.defaults.directionLineColor + ';' +
+                                    '--order-opacity:' + seemap.defaults.directionLineOpacity + ';' +
+                                    'font-size:' + order_font_size + 'px;">' +
+                                    order_number +
+                                    '</div>',
+                                iconSize: [order_size, order_size],
+                                iconAnchor: [order_size / 2, order_size / 2]
+                            });
+
+                            const direction_order_label = L.marker(order_midpoint, {
+                                icon: order_icon,
+                                interactive: false,
+                                keyboard: false,
+                                zIndexOffset: 1001
+                            }).addTo(seemap.instance);
+                            seemap.directionOrderLabels.push(direction_order_label);
                         }
                     });
 
