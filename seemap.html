@@ -29,6 +29,9 @@
         routingFrontLineColor: 'fuchsia', // String - Routing style front line CSS color
         routingFrontLineOpacity: 1, // Number - Routing style front line CSS opacity
         routingFrontLineWeight: 2, // Number - Routing style front line CSS weight
+        directionLineColor: 'red', // String - Direction arrow color
+        directionLineOpacity: 0.85, // Number - Direction arrow opacity
+        directionLineWeight: 3, // Number - Direction arrow line weight
         // String - Map view reset control icon URL, can be base64 (recommended) or public remote URL
         controlViewResetControlIconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItaG9tZSI+PHBhdGggZD0iTTMgOWw5LTcgOSA3djExYTIgMiAwIDAgMS0yIDJINWEyIDIgMCAwIDEtMi0yeiI+PC9wYXRoPjxwb2x5bGluZSBwb2ludHM9IjkgMjIgOSAxMiAxNSAxMiAxNSAyMiI+PC9wb2x5bGluZT48L3N2Zz4=',
         // String - Permalink control icon URL, can be base64 (recommended) or public remote URL
@@ -29369,6 +29372,8 @@
         },
         markers: {},
         routeControl: {},
+        directionLine: null,
+        directionArrow: null,
         clusterGroup: L.markerClusterGroup(),
         /**
          * @function addMarker
@@ -29785,6 +29790,97 @@
                         }
                     }
 
+                    // Direction arrow
+                    // ?direction=lat1,lng1,lat2,lng2
+                    // or     ?direction=name1,name2
+                    const direction_parameter = seemap.isGetParameter('direction');
+                    if (direction_parameter !== null) {
+                        let direction_from = null;
+                        let direction_to = null;
+                        const direction_parts = direction_parameter.split(',');
+
+                        // Coordinate form: lat1,lng1,lat2,lng2
+                        if (direction_parts.length === 4 &&
+                            direction_parts.every(function(value) { return value.trim() !== '' && !isNaN(Number(value)); })) {
+                            direction_from = L.latLng(Number(direction_parts[0]), Number(direction_parts[1]));
+                            direction_to = L.latLng(Number(direction_parts[2]), Number(direction_parts[3]));
+                        }
+                        // Name form: name1,name2. Marker popup content is used as its name.
+                        else if (direction_parts.length === 2) {
+                            const direction_name_from = direction_parts[0].trim();
+                            const direction_name_to = direction_parts[1].trim();
+
+                            Object.keys(seemap.markers).some(function(marker_id) {
+                                const marker = seemap.markers[marker_id];
+                                const popup = marker.getPopup();
+                                const name = popup ? String(popup.getContent()).trim() : '';
+                                if (name === direction_name_from) {
+                                    direction_from = marker.getLatLng();
+                                }
+                                if (name === direction_name_to) {
+                                    direction_to = marker.getLatLng();
+                                }
+                                return direction_from !== null && direction_to !== null;
+                            });
+                        }
+
+                        if (direction_from !== null && direction_to !== null) {
+                            const direction_distance = direction_from.distanceTo(direction_to);
+
+                            // Draw the line.
+                            seemap.directionLine = L.polyline([direction_from, direction_to], {
+                                color: seemap.defaults.directionLineColor,
+                                opacity: seemap.defaults.directionLineOpacity,
+                                weight: seemap.defaults.directionLineWeight
+                            }).addTo(seemap.instance);
+
+                            // Build a geographic triangle for the arrowhead so it stays aligned
+                            // with the direction even while the map is zoomed or moved.
+                            const earth_radius = 6371000;
+                            const bearing = Math.atan2(
+                                Math.sin((direction_to.lng - direction_from.lng) * Math.PI / 180) *
+                                    Math.cos(direction_to.lat * Math.PI / 180),
+                                Math.cos(direction_from.lat * Math.PI / 180) * Math.sin(direction_to.lat * Math.PI / 180) -
+                                    Math.sin(direction_from.lat * Math.PI / 180) * Math.cos(direction_to.lat * Math.PI / 180) *
+                                    Math.cos((direction_to.lng - direction_from.lng) * Math.PI / 180)
+                            );
+
+                            const arrow_length = Math.min(Math.max(direction_distance * 0.12, 20), 120);
+                            const arrow_width = arrow_length * 0.65;
+
+                            function destinationPoint(origin, distance, bearing_angle) {
+                                const angular_distance = distance / earth_radius;
+                                const lat1 = origin.lat * Math.PI / 180;
+                                const lng1 = origin.lng * Math.PI / 180;
+                                const lat2 = Math.asin(
+                                    Math.sin(lat1) * Math.cos(angular_distance) +
+                                    Math.cos(lat1) * Math.sin(angular_distance) * Math.cos(bearing_angle)
+                                );
+                                const lng2 = lng1 + Math.atan2(
+                                    Math.sin(bearing_angle) * Math.sin(angular_distance) * Math.cos(lat1),
+                                    Math.cos(angular_distance) - Math.sin(lat1) * Math.sin(lat2)
+                                );
+                                return L.latLng(lat2 * 180 / Math.PI, lng2 * 180 / Math.PI);
+                            }
+
+                            const arrow_base = destinationPoint(direction_to, arrow_length, bearing + Math.PI);
+                            const arrow_left = destinationPoint(arrow_base, arrow_width / 2, bearing + Math.PI / 2);
+                            const arrow_right = destinationPoint(arrow_base, arrow_width / 2, bearing - Math.PI / 2);
+
+                            seemap.directionArrow = L.polygon([
+                                direction_to,
+                                arrow_left,
+                                arrow_right
+                            ], {
+                                color: seemap.defaults.directionLineColor,
+                                opacity: seemap.defaults.directionLineOpacity,
+                                weight: 1,
+                                fillColor: seemap.defaults.directionLineColor,
+                                fillOpacity: seemap.defaults.directionLineOpacity
+                            }).addTo(seemap.instance);
+                        }
+                    }
+
                     // Routing
                     if (waypoints.length > 1 && map_routing) {
                         seemap.routeControl = L.Routing.control({
@@ -30058,6 +30154,14 @@
                 // Draw polygon
                 if (this.isGetParameter('draw') !== null) {
                     permanent_link += '&draw='+encodeURIComponent(this.isGetParameter('draw'));
+                }
+                // Direction arrow
+                if (this.directionLine !== null) {
+                    const direction_from = this.directionLine.getLatLngs()[0];
+                    const direction_to = this.directionLine.getLatLngs()[1];
+                    permanent_link += '&direction='+direction_from.lat+','+direction_from.lng+','+direction_to.lat+','+direction_to.lng;
+                } else if (this.isGetParameter('direction') !== null) {
+                    permanent_link += '&direction='+encodeURIComponent(this.isGetParameter('direction'));
                 }
                 // Markers
                 current_view_settings.markers.forEach(function(marker_data) {
