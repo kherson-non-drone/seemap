@@ -32,6 +32,7 @@
         directionLineColor: 'red', // String - Direction arrow color
         directionLineOpacity: 0.85, // Number - Direction arrow opacity
         directionLineWeight: 3, // Number - Direction arrow line weight
+        directionArrowSize: 30, // Number - Direction arrowhead size in pixels (stays crisp at any zoom level)
         // String - Map view reset control icon URL, can be base64 (recommended) or public remote URL
         controlViewResetControlIconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItaG9tZSI+PHBhdGggZD0iTTMgOWw5LTcgOSA3djExYTIgMiAwIDAgMS0yIDJINWEyIDIgMCAwIDEtMi0yeiI+PC9wYXRoPjxwb2x5bGluZSBwb2ludHM9IjkgMjIgOSAxMiAxNSAxMiAxNSAyMiI+PC9wb2x5bGluZT48L3N2Zz4=',
         // String - Permalink control icon URL, can be base64 (recommended) or public remote URL
@@ -1372,6 +1373,12 @@
     }
     .leaflet-control-zoom-in, .leaflet-control-zoom-out {
         font-family: inherit;
+    }
+    .seemap-direction-arrow {
+        background: transparent;
+        border: none;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+        pointer-events: none;
     }
 </style>
     <!-- Leaflet Routing Machine -->
@@ -29096,6 +29103,10 @@
                     weight: userSettings.routingFrontLineWeight
                 }
             ],
+            directionLineColor: userSettings.directionLineColor,
+            directionLineOpacity: userSettings.directionLineOpacity,
+            directionLineWeight: userSettings.directionLineWeight,
+            directionArrowSize: userSettings.directionArrowSize,
             fit: userSettings.fit,
             icon: {
                 iconUrl: userSettings.markerIconUrl,
@@ -29825,58 +29836,53 @@
                         }
 
                         if (direction_from !== null && direction_to !== null) {
-                            const direction_distance = direction_from.distanceTo(direction_to);
-
-                            // Draw the line.
+                            // Draw the line from A to B.
                             seemap.directionLine = L.polyline([direction_from, direction_to], {
                                 color: seemap.defaults.directionLineColor,
                                 opacity: seemap.defaults.directionLineOpacity,
                                 weight: seemap.defaults.directionLineWeight
                             }).addTo(seemap.instance);
 
-                            // Build a geographic triangle for the arrowhead so it stays aligned
-                            // with the direction even while the map is zoomed or moved.
-                            const earth_radius = 6371000;
-                            const bearing = Math.atan2(
+                            // Compass bearing (0deg = north, clockwise) from A to B.
+                            const bearing_radians = Math.atan2(
                                 Math.sin((direction_to.lng - direction_from.lng) * Math.PI / 180) *
                                     Math.cos(direction_to.lat * Math.PI / 180),
                                 Math.cos(direction_from.lat * Math.PI / 180) * Math.sin(direction_to.lat * Math.PI / 180) -
                                     Math.sin(direction_from.lat * Math.PI / 180) * Math.cos(direction_to.lat * Math.PI / 180) *
                                     Math.cos((direction_to.lng - direction_from.lng) * Math.PI / 180)
                             );
+                            const bearing_degrees = (bearing_radians * 180 / Math.PI + 360) % 360;
 
-                            const arrow_length = Math.min(Math.max(direction_distance * 0.12, 20), 120);
-                            const arrow_width = arrow_length * 0.65;
+                            // The arrowhead is a small fixed-pixel-size SVG icon (not a geographic
+                            // polygon), so it stays crisp and proportionate at every zoom level
+                            // instead of shrinking to a speck or ballooning into a blob.
+                            // Its tip sits at (12, 2) in a 24x24 viewBox; that same point is used
+                            // both as the Leaflet icon anchor (so the tip lands exactly on B) and
+                            // as the CSS transform-origin (so rotating it for any bearing keeps
+                            // the tip pinned to B while the tail swings around behind it).
+                            const arrow_size = seemap.defaults.directionArrowSize;
+                            const arrow_tip_x = arrow_size * (12 / 24);
+                            const arrow_tip_y = arrow_size * (2 / 24);
 
-                            function destinationPoint(origin, distance, bearing_angle) {
-                                const angular_distance = distance / earth_radius;
-                                const lat1 = origin.lat * Math.PI / 180;
-                                const lng1 = origin.lng * Math.PI / 180;
-                                const lat2 = Math.asin(
-                                    Math.sin(lat1) * Math.cos(angular_distance) +
-                                    Math.cos(lat1) * Math.sin(angular_distance) * Math.cos(bearing_angle)
-                                );
-                                const lng2 = lng1 + Math.atan2(
-                                    Math.sin(bearing_angle) * Math.sin(angular_distance) * Math.cos(lat1),
-                                    Math.cos(angular_distance) - Math.sin(lat1) * Math.sin(lat2)
-                                );
-                                return L.latLng(lat2 * 180 / Math.PI, lng2 * 180 / Math.PI);
-                            }
+                            const arrow_icon = L.divIcon({
+                                className: 'seemap-direction-arrow',
+                                html: '<svg width="' + arrow_size + '" height="' + arrow_size + '" viewBox="0 0 24 24" ' +
+                                    'style="display:block; transform: rotate(' + bearing_degrees + 'deg); transform-origin: ' +
+                                    arrow_tip_x + 'px ' + arrow_tip_y + 'px;">' +
+                                    '<path d="M12 2 L19.5 22 L12 17 L4.5 22 Z" ' +
+                                    'fill="' + seemap.defaults.directionLineColor + '" ' +
+                                    'fill-opacity="' + seemap.defaults.directionLineOpacity + '" ' +
+                                    'stroke="#ffffff" stroke-width="1.25" stroke-linejoin="round"/>' +
+                                    '</svg>',
+                                iconSize: [arrow_size, arrow_size],
+                                iconAnchor: [arrow_tip_x, arrow_tip_y]
+                            });
 
-                            const arrow_base = destinationPoint(direction_to, arrow_length, bearing + Math.PI);
-                            const arrow_left = destinationPoint(arrow_base, arrow_width / 2, bearing + Math.PI / 2);
-                            const arrow_right = destinationPoint(arrow_base, arrow_width / 2, bearing - Math.PI / 2);
-
-                            seemap.directionArrow = L.polygon([
-                                direction_to,
-                                arrow_left,
-                                arrow_right
-                            ], {
-                                color: seemap.defaults.directionLineColor,
-                                opacity: seemap.defaults.directionLineOpacity,
-                                weight: 1,
-                                fillColor: seemap.defaults.directionLineColor,
-                                fillOpacity: seemap.defaults.directionLineOpacity
+                            seemap.directionArrow = L.marker(direction_to, {
+                                icon: arrow_icon,
+                                interactive: false,
+                                keyboard: false,
+                                zIndexOffset: 1000
                             }).addTo(seemap.instance);
                         }
                     }
