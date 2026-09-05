@@ -29924,7 +29924,12 @@
                             // among the &direction=... URL parameters (1-based). Skipped
                             // when there's only a single direction, since there's no
                             // ordering to show in that case.
-                            if (direction_parameters.length > 1) {
+
+                            // If ordera=false in url params, will never draw a circle with
+                            // arrow order. Otherwise always draw
+                            const ordera = seemap.isGetParameter('ordera') === "false";
+
+                            if (direction_parameters.length > 1 && !ordera) {
                                 const order_number = direction_index + 1;
                                 const order_midpoint = L.latLng(
                                     (direction_from.lat + direction_to.lat) / 2,
