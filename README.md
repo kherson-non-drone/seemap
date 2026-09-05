@@ -35,6 +35,7 @@ A single HTML map file bundled with customizable popular Leaflet plugins, map pr
 * **Permalink** <br>Permalink control button allows visitors to always get the direct link to the current view, useful to share the map view [Learn more](https://olivier3lanc.github.io/seemap/permalink.html)<br><br>
 * **Reset view** <br>Reset view control button allows visitors to go back to the very first view of their current session, or to the SEEMAP's default settings [Learn more](https://olivier3lanc.github.io/seemap/reset-view.html)<br><br>
 * **Make a Polygon from markers** <br>Add <code>draw=true</code> to make a polygon from markers you specified<br><br>
+* **Draw an arrow from point A to point B** <br>Add <code>direction=A,B</code> (by name) or <code>direction=coordsA,coordsB</code> to draw an arrow from point A to point B. If there is more than one <code>direction=</code> param, will draw a circle with number inside, which is arrow order as they appear in link. <b>This can be disabled</b> with <code>ordera=false</code><br><br>
 
 ## Use cases
 
