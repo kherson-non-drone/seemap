@@ -29921,34 +29921,38 @@
 
                             // Order badge: a small numbered circle at the midpoint of the
                             // arrow, showing the order in which this direction appears
-                            // among the &direction=... URL parameters (1-based).
-                            const order_number = direction_index + 1;
-                            const order_midpoint = L.latLng(
-                                (direction_from.lat + direction_to.lat) / 2,
-                                (direction_from.lng + direction_to.lng) / 2
-                            );
-                            const order_size = Math.max(18, Math.round(arrow_size * 0.75));
-                            const order_font_size = Math.max(10, Math.round(order_size * 0.55));
+                            // among the &direction=... URL parameters (1-based). Skipped
+                            // when there's only a single direction, since there's no
+                            // ordering to show in that case.
+                            if (direction_parameters.length > 1) {
+                                const order_number = direction_index + 1;
+                                const order_midpoint = L.latLng(
+                                    (direction_from.lat + direction_to.lat) / 2,
+                                    (direction_from.lng + direction_to.lng) / 2
+                                );
+                                const order_size = Math.max(18, Math.round(arrow_size * 0.75));
+                                const order_font_size = Math.max(10, Math.round(order_size * 0.55));
 
-                            const order_icon = L.divIcon({
-                                className: 'seemap-direction-order',
-                                html: '<div class="seemap-direction-order-circle" style="' +
-                                    '--order-color:' + seemap.defaults.directionLineColor + ';' +
-                                    '--order-opacity:' + seemap.defaults.directionLineOpacity + ';' +
-                                    'font-size:' + order_font_size + 'px;">' +
-                                    order_number +
-                                    '</div>',
-                                iconSize: [order_size, order_size],
-                                iconAnchor: [order_size / 2, order_size / 2]
-                            });
+                                const order_icon = L.divIcon({
+                                    className: 'seemap-direction-order',
+                                    html: '<div class="seemap-direction-order-circle" style="' +
+                                        '--order-color:' + seemap.defaults.directionLineColor + ';' +
+                                        '--order-opacity:' + seemap.defaults.directionLineOpacity + ';' +
+                                        'font-size:' + order_font_size + 'px;">' +
+                                        order_number +
+                                        '</div>',
+                                    iconSize: [order_size, order_size],
+                                    iconAnchor: [order_size / 2, order_size / 2]
+                                });
 
-                            const direction_order_label = L.marker(order_midpoint, {
-                                icon: order_icon,
-                                interactive: false,
-                                keyboard: false,
-                                zIndexOffset: 1001
-                            }).addTo(seemap.instance);
-                            seemap.directionOrderLabels.push(direction_order_label);
+                                const direction_order_label = L.marker(order_midpoint, {
+                                    icon: order_icon,
+                                    interactive: false,
+                                    keyboard: false,
+                                    zIndexOffset: 1001
+                                }).addTo(seemap.instance);
+                                seemap.directionOrderLabels.push(direction_order_label);
+                            }
                         }
                     });
 
